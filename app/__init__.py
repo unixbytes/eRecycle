@@ -78,7 +78,6 @@ def send_pickup_confirmation_email(pickup):
         outer.attach(MIMEText(html_body, 'html', 'utf-8'))
 
         image = MIMEImage(qr_png, 'png')
-        image.add_header('Content-Disposition', 'inline', filename=f'{pickup.tracking_number}-qr.png')
         image.add_header('Content-ID', '<pickup-qr>')
         outer.attach(image)
 
