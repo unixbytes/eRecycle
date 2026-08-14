@@ -80,23 +80,27 @@ def send_pickup_confirmation_email(pickup):
             time_window=pickup.preferred_time_window.replace('_', ' ').title(),
         )
 
-        message = EmailMessage()
-        message['Subject'] = subject
-        message['From'] = sender
-        message['To'] = pickup.customer.email
-        message.set_content(html_body, subtype='html')
+        outer = MIMEMultipart('related')
+        outer['Subject'] = subject
+        outer['From'] = sender
+        outer['To'] = pickup.customer.email
+
+        html_part = MIMEText(html_body, 'html', 'utf-8')
+        outer.attach(html_part)
 
         buf = io.BytesIO()
         qr = qrcode.make(tracking_url, box_size=6, border=2)
         qr.save(buf, format='PNG')
         qr_bytes = buf.getvalue()
-        message.add_related(qr_bytes, 'image', 'png', cid='pickup-qr')
+        image = MIMEImage(qr_bytes, 'png')
+        image.add_header('Content-ID', '<pickup-qr>')
+        outer.attach(image)
 
         with smtplib.SMTP(app.config.get('MAIL_SERVER'), int(app.config.get('MAIL_PORT'))) as server:
             if app.config.get('MAIL_USE_TLS'):
                 server.starttls()
             server.login(app.config.get('MAIL_USERNAME'), app.config.get('MAIL_PASSWORD'))
-            server.send_message(message)
+            server.send_message(outer)
 
         app.logger.info(f"Pickup confirmation email sent to {pickup.customer.email} for {pickup.tracking_number}")
         return True
