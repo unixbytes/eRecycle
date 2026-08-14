@@ -90,7 +90,10 @@ def send_pickup_confirmation_email(pickup):
         app.logger.info(f"Pickup confirmation email sent to {pickup.customer.email} for {pickup.tracking_number}")
         return True
     except Exception as e:
+        import traceback
         app.logger.error(f"SMTP pickup email failed for {pickup.tracking_number}: {e}")
+        app.logger.error(traceback.format_exc())
+        app.logger.error(f"SMTP pickup failed sender={sender!r} recipient={pickup.customer.email!r} subject={subject!r}")
         return False
 
 
