@@ -57,7 +57,7 @@ a { text-decoration: none; color: inherit; }
 
 /* ===== Features ===== */
 .features { padding: 80px 20px; background: var(--white); }
-.features h2, .accepted h2, .cta-section h2 { text-align: center; font-size: 2rem; margin-bottom: 40px; color: var(--gray-800); }
+.features h2, .accepted h2, .cta-section h2 { text-align: center; font-size: 2rem; margin-bottom: 40px; }
 .feature-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 24px; }
 .feature-card { background: var(--gray-50); padding: 30px 24px; border-radius: 10px; text-align: center; border: 1px solid var(--gray-200); }
 .feature-icon { font-size: 3rem; margin-bottom: 16px; }
@@ -71,7 +71,8 @@ a { text-decoration: none; color: inherit; }
 
 /* ===== CTA ===== */
 .cta-section { padding: 60px 20px; background: var(--gray-900); color: var(--white); text-align: center; }
-.cta-section p { margin: 16px 0 24px; opacity: 0.85; font-size: 1.1rem; }
+.cta-section h2 { color: #ffffff; font-weight: 700; }
+.cta-section p { margin: 16px 0 24px; opacity: 0.95; font-size: 1.1rem; }
 
 /* ===== Footer ===== */
 .footer { background: var(--gray-800); color: var(--gray-400); padding: 20px; text-align: center; font-size: 0.9rem; }
