@@ -27,7 +27,7 @@ body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height
 a { text-decoration: none; color: inherit; }
 
 /* ===== Buttons ===== */
-.btn { display: inline-block; padding: 10px 20px; border-radius: 6px; font-weight: 600; cursor: pointer; border: none; font-size: 0.95rem; transition: all 0.2s; }
+.btn { display: inline-block; padding: 10px 20px; border-radius: 6px; font-weight: 600; cursor: pointer; border: none; font-size: 0.95rem; transition: all 0.2s; text-align: center; }
 .btn-primary { background: var(--green-600); color: var(--white); }
 .btn-primary:hover { background: var(--green-700); }
 .btn-secondary { background: var(--white); color: var(--green-600); border: 2px solid var(--green-600); }
