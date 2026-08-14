@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pickup Confirmation</title>
+    <style>
+        body { font-family: Arial, sans-serif; background: #f3f4f6; margin: 0; padding: 20px; }
+        .container { max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,0.06); }
+        .header { background: #065f46; color: #ffffff; padding: 20px 24px; }
+        .header h1 { margin: 0; font-size: 1.25rem; }
+        .body { padding: 24px; color: #1f2937; }
+        .qr { text-align: center; margin-top: 18px; }
+        .qr img { width: 180px; height: 180px; }
+        .details { margin-top: 14px; }
+        .details p { margin: 6px 0; font-size: 1rem; }
+        .tracking { background: #ecfdf5; border: 1px solid #a7f3d0; color: #065f46; padding: 12px; border-radius: 8px; text-align: center; font-weight: 600; word-break: break-all; }
+        .footer { padding: 16px 24px; background: #f9fafb; color: #6b7280; font-size: 0.875rem; }
+        a { color: #065f46; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>♻️ Pickup Request Confirmed</h1>
+        </div>
+        <div class="body">
+            <p>Hi {{ first_name }},</p>
+            <p>Thank you for submitting your electronic recycling pickup request.</p>
+
+            <div class="tracking">
+                Track your request: {{ tracking_url }}
+            </div>
+
+            <div class="details">
+                <p><strong>Tracking Number:</strong> {{ tracking_number }}</p>
+                <p><strong>Preferred Date:</strong> {{ preferred_date }}</p>
+                <p><strong>Time Window:</strong> {{ time_window }}</p>
+            </div>
+
+            <div class="qr">
+                <p style="margin-bottom:8px;color:#4b5563;">Scan this QR to track your pickup</p>
+                <img src="{{ qr_data_uri }}" alt="QR code">
+            </div>
+
+            <p style="margin-top:18px;">If you need to make changes, please contact us with your tracking number.</p>
+            <p>Thank you for recycling responsibly!</p>
+        </div>
+        <div class="footer">
+            EcoRecycle
+        </div>
+    </div>
+</body>
+</html>

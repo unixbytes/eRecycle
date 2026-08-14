@@ -8,6 +8,7 @@ import uuid
 import io
 import qrcode
 import smtplib
+import base64
 from email.mime.text import MIMEText
 import msal
 import requests
@@ -34,6 +35,7 @@ app.config['GRAPH_TENANT_ID'] = ''
 app.config['GRAPH_CLIENT_ID'] = ''
 app.config['GRAPH_CLIENT_SECRET'] = ''
 app.config['GRAPH_SENDER_EMAIL'] = ''
+app.config['PUBLIC_BASE_URL'] = 'https://erecycle.sultantech.ca'
 
 mail = Mail(app)
 db = SQLAlchemy(app)
@@ -83,52 +85,54 @@ def send_mail_via_graph(subject, body, recipient, sender=None):
 
 
 def send_pickup_confirmation_email(pickup):
+    public_base_url = (app.config.get('PUBLIC_BASE_URL') or 'https://erecycle.sultantech.ca').rstrip('/')
+    tracking_url = f"{public_base_url}/track/{pickup.tracking_number}"
+
+    qr = qrcode.make(tracking_url, box_size=6, border=2)
+    buf = io.BytesIO()
+    qr.save(buf, format='PNG')
+    qr_data_uri = 'data:image/png;base64,' + base64.b64encode(buf.getvalue()).decode('ascii')
+
+    html_body = render_template(
+        'email/pickup_confirmation.html',
+        first_name=pickup.customer.first_name,
+        tracking_number=pickup.tracking_number,
+        tracking_url=tracking_url,
+        preferred_date=pickup.preferred_date.strftime('%B %d, %Y'),
+        time_window=pickup.preferred_time_window.replace('_', ' ').title(),
+        qr_data_uri=qr_data_uri,
+    )
+
     if app.config.get('GRAPH_TENANT_ID') and app.config.get('GRAPH_CLIENT_ID') and app.config.get('GRAPH_CLIENT_SECRET'):
         try:
-            tracking_url = url_for('track_request', tracking_number=pickup.tracking_number, _external=True)
             subject = f"Pickup Request Confirmed - {pickup.tracking_number}"
-            body = f"""Hi {pickup.customer.first_name},
-
-Thank you for submitting your electronic recycling pickup request.
-
-Tracking Number: {pickup.tracking_number}
-Preferred Date: {pickup.preferred_date.strftime('%B %d, %Y')}
-Time Window: {pickup.preferred_time_window.replace('_', ' ').title()}
-
-You can track your request here: {tracking_url}
-
-If you need to make changes, please contact us with your tracking number.
-
-Thank you for recycling responsibly!
-"""
-            send_mail_via_graph(subject, body, pickup.customer.email)
+            token = _graph_token()
+            sender_email = app.config.get('GRAPH_SENDER_EMAIL') or app.config.get('MAIL_DEFAULT_SENDER') or app.config.get('MAIL_USERNAME')
+            payload = {
+                "message": {
+                    "subject": subject,
+                    "body": {"contentType": "html", "content": html_body},
+                    "from": {"emailAddress": {"address": sender_email}},
+                    "toRecipients": [{"emailAddress": {"address": pickup.customer.email}}],
+                },
+                "saveToSentItems": "false",
+            }
+            headers = {"Authorization": f"Bearer {token}", "Content-Type": "application/json"}
+            resp = requests.post(f"https://graph.microsoft.com/v1.0/users/{sender_email}/sendMail", headers=headers, json=payload)
+            if resp.status_code >= 400:
+                raise RuntimeError(f"Graph sendMail failed: {resp.status_code} {resp.text}")
             return True
-        except Exception:
+        except Exception as e:
+            app.logger.error(f"Graph pickup email failed: {e}")
             return False
 
     if not app.config.get('MAIL_USERNAME') or not app.config.get('MAIL_PASSWORD'):
         return False
 
     try:
-        tracking_url = url_for('track_request', tracking_number=pickup.tracking_number, _external=True)
-        subject = f"Pickup Request Confirmed - {pickup.tracking_number}"
-        body = f"""Hi {pickup.customer.first_name},
-
-Thank you for submitting your electronic recycling pickup request.
-
-Tracking Number: {pickup.tracking_number}
-Preferred Date: {pickup.preferred_date.strftime('%B %d, %Y')}
-Time Window: {pickup.preferred_time_window.replace('_', ' ').title()}
-
-You can track your request here: {tracking_url}
-
-If you need to make changes, please contact us with your tracking number.
-
-Thank you for recycling responsibly!
-"""
-
         sender = app.config.get('MAIL_DEFAULT_SENDER') or app.config.get('MAIL_USERNAME')
-        msg = MIMEText(body)
+        subject = f"Pickup Request Confirmed - {pickup.tracking_number}"
+        msg = MIMEText(html_body, 'html')
         msg['Subject'] = subject
         msg['From'] = sender
         msg['To'] = pickup.customer.email
@@ -140,7 +144,8 @@ Thank you for recycling responsibly!
             server.sendmail(sender, [pickup.customer.email], msg.as_string())
 
         return True
-    except Exception:
+    except Exception as e:
+        app.logger.error(f"SMTP pickup email failed: {e}")
         return False
 
 
@@ -783,6 +788,7 @@ def apply_email_settings():
     app.config['GRAPH_CLIENT_ID'] = get_app_setting('graph_client_id', '')
     app.config['GRAPH_CLIENT_SECRET'] = get_app_setting('graph_client_secret', '')
     app.config['GRAPH_SENDER_EMAIL'] = get_app_setting('graph_sender_email', '') or get_app_setting('mail_default_sender', '') or get_app_setting('mail_username', '')
+    app.config['PUBLIC_BASE_URL'] = get_app_setting('public_base_url', '') or 'https://erecycle.sultantech.ca'
 
 
 @app.route('/admin/email-settings', methods=['GET', 'POST'])
@@ -798,6 +804,7 @@ def admin_email_settings():
         'graph_client_id': get_app_setting('graph_client_id', ''),
         'graph_client_secret': get_app_setting('graph_client_secret', ''),
         'graph_sender_email': get_app_setting('graph_sender_email', ''),
+        'public_base_url': get_app_setting('public_base_url', 'https://erecycle.sultantech.ca'),
     }
 
     if request.method == 'POST':
@@ -811,6 +818,7 @@ def admin_email_settings():
         set_app_setting('graph_client_id', request.form.get('graph_client_id', '').strip())
         set_app_setting('graph_client_secret', request.form.get('graph_client_secret', '').strip())
         set_app_setting('graph_sender_email', request.form.get('graph_sender_email', '').strip())
+        set_app_setting('public_base_url', request.form.get('public_base_url', '').strip())
 
         apply_email_settings()
         flash('Email settings saved', 'success')
