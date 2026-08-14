@@ -84,7 +84,7 @@ a { text-decoration: none; color: inherit; }
 .form-group input, .form-group select, .form-group textarea, .form-control { width: 100%; padding: 10px 14px; border: 1px solid var(--gray-300); border-radius: 6px; font-size: 1rem; }
 .form-group input:focus, .form-group select:focus, .form-group textarea:focus, .form-control:focus { outline: none; border-color: var(--green-500); box-shadow: 0 0 0 3px var(--green-100); }
 .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-.form-actions { margin-top: 24px; display: flex; gap: 12px; }
+.form-actions { margin-top: 24px; display: flex; gap: 12px; flex-wrap: wrap; }
 .field-error { display: block; color: var(--red); font-size: 0.85rem; margin-top: 6px; }
 .help-text { display: block; color: var(--gray-500); font-size: 0.85rem; margin-top: 6px; }
 
@@ -158,4 +158,6 @@ a { text-decoration: none; color: inherit; }
     .nav-links.open { display: flex; }
     .nav-container { flex-wrap: wrap; row-gap: 10px; }
     .hero h1 { font-size: 2rem; }
+    .form-actions { flex-direction: column; }
+    .form-actions .btn { width: 100%; }
 }
