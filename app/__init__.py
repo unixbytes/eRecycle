@@ -10,6 +10,8 @@ import qrcode
 import smtplib
 import base64
 from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+from email.mime.image import MIMEImage
 import requests
 from flask_mail import Mail
 
@@ -49,7 +51,7 @@ def send_pickup_confirmation_email(pickup):
     qr = qrcode.make(tracking_url, box_size=6, border=2)
     buf = io.BytesIO()
     qr.save(buf, format='PNG')
-    qr_data_uri = 'data:image/png;base64,' + base64.b64encode(buf.getvalue()).decode('ascii')
+    qr_png = buf.getvalue()
 
     html_body = render_template(
         'email/pickup_confirmation.html',
@@ -58,7 +60,7 @@ def send_pickup_confirmation_email(pickup):
         tracking_url=tracking_url,
         preferred_date=pickup.preferred_date.strftime('%B %d, %Y'),
         time_window=pickup.preferred_time_window.replace('_', ' ').title(),
-        qr_data_uri=qr_data_uri,
+        qr_data_uri='',
     )
 
     if not app.config.get('MAIL_USERNAME') or not app.config.get('MAIL_PASSWORD'):
@@ -68,16 +70,23 @@ def send_pickup_confirmation_email(pickup):
     try:
         sender = app.config.get('MAIL_DEFAULT_SENDER') or app.config.get('MAIL_USERNAME')
         subject = f"Pickup Request Confirmed - {pickup.tracking_number}"
-        msg = MIMEText(html_body, 'html', 'utf-8')
-        msg['Subject'] = subject
-        msg['From'] = sender
-        msg['To'] = pickup.customer.email
+
+        outer = MIMEMultipart('related')
+        outer['Subject'] = subject
+        outer['From'] = sender
+        outer['To'] = pickup.customer.email
+        outer.attach(MIMEText(html_body, 'html', 'utf-8'))
+
+        image = MIMEImage(qr_png, 'png')
+        image.add_header('Content-Disposition', 'inline', filename=f'{pickup.tracking_number}-qr.png')
+        image.add_header('Content-ID', '<pickup-qr>')
+        outer.attach(image)
 
         with smtplib.SMTP(app.config.get('MAIL_SERVER'), int(app.config.get('MAIL_PORT'))) as server:
             if app.config.get('MAIL_USE_TLS'):
                 server.starttls()
             server.login(app.config.get('MAIL_USERNAME'), app.config.get('MAIL_PASSWORD'))
-            server.sendmail(sender, [pickup.customer.email], msg.as_string())
+            server.sendmail(sender, [pickup.customer.email], outer.as_string())
 
         app.logger.info(f"Pickup confirmation email sent to {pickup.customer.email} for {pickup.tracking_number}")
         return True
