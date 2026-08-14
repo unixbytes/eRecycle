@@ -74,31 +74,7 @@
                 </div>
 
                 <div style="border-top: 1px solid var(--gray-200); padding-top: 20px; margin-top: 20px;">
-                    <h3 style="margin-bottom: 16px; color: var(--gray-800);">Microsoft Graph API (Recommended)</h3>
-                    <p style="color: var(--gray-600); margin-bottom: 16px;">
-                        Use Microsoft Graph API for modern, reliable email sending with your domain.
-                        This requires an app registration in Azure AD with <strong>Mail.Send</strong> permission.
-                    </p>
-
                     <div class="form-group">
-                        <label>Tenant ID</label>
-                        <input type="text" name="graph_tenant_id" value="{{ settings.graph_tenant_id or '' }}" class="form-control" placeholder="your-tenant-id">
-                    </div>
-                    <div class="form-group">
-                        <label>Client ID</label>
-                        <input type="text" name="graph_client_id" value="{{ settings.graph_client_id or '' }}" class="form-control" placeholder="your-client-id">
-                    </div>
-                    <div class="form-group">
-                        <label>Client Secret</label>
-                        <input type="password" name="graph_client_secret" value="{{ settings.graph_client_secret or '' }}" class="form-control" placeholder="your-client-secret">
-                    </div>
-                    <div class="form-group">
-                        <label>Sender Email Address</label>
-                        <input type="email" name="graph_sender_email" value="{{ settings.graph_sender_email or '' }}" class="form-control" placeholder="noreply@yourdomain.com">
-                        <small class="help-text">The mailbox to send from. Must match the authenticated user or have Send As permission.</small>
-                    </div>
-
-                    <div class="form-group" style="margin-top: 10px;">
                         <label>Public Base URL</label>
                         <input type="url" name="public_base_url" value="{{ settings.public_base_url or 'https://erecycle.sultantech.ca' }}" class="form-control" placeholder="https://erecycle.sultantech.ca">
                         <small class="help-text">Used for links and QR codes in customer confirmation emails.</small>

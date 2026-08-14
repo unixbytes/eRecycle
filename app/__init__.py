@@ -10,7 +10,6 @@ import qrcode
 import smtplib
 import base64
 from email.mime.text import MIMEText
-import msal
 import requests
 from flask_mail import Mail
 
@@ -31,57 +30,10 @@ app.config['MAIL_USE_TLS'] = True
 app.config['MAIL_USERNAME'] = ''
 app.config['MAIL_PASSWORD'] = ''
 app.config['MAIL_DEFAULT_SENDER'] = ''
-app.config['GRAPH_TENANT_ID'] = ''
-app.config['GRAPH_CLIENT_ID'] = ''
-app.config['GRAPH_CLIENT_SECRET'] = ''
-app.config['GRAPH_SENDER_EMAIL'] = ''
 app.config['PUBLIC_BASE_URL'] = 'https://erecycle.sultantech.ca'
 
 mail = Mail(app)
 db = SQLAlchemy(app)
-
-
-def _graph_token():
-    tenant = app.config.get('GRAPH_TENANT_ID')
-    client_id = app.config.get('GRAPH_CLIENT_ID')
-    secret = app.config.get('GRAPH_CLIENT_SECRET')
-    if not tenant or not client_id or not secret:
-        return None
-    authority = f"https://login.microsoftonline.com/{tenant}"
-    app_msal = msal.ConfidentialClientApplication(
-        client_id,
-        authority=authority,
-        client_credential=secret,
-    )
-    result = app_msal.acquire_token_for_client(scopes=["https://graph.microsoft.com/.default"])
-    return result.get("access_token")
-
-
-def send_mail_via_graph(subject, body, recipient, sender=None):
-    token = _graph_token()
-    if not token:
-        raise RuntimeError("Graph token could not be acquired")
-    sender_email = sender or app.config.get('GRAPH_SENDER_EMAIL') or app.config.get('MAIL_DEFAULT_SENDER') or app.config.get('MAIL_USERNAME')
-    payload = {
-        "message": {
-            "subject": subject,
-            "body": {
-                "contentType": "text",
-                "content": body,
-            },
-            "from": {"emailAddress": {"address": sender_email}},
-            "toRecipients": [{"emailAddress": {"address": recipient}}],
-        },
-        "saveToSentItems": "false",
-    }
-    headers = {
-        "Authorization": f"Bearer {token}",
-        "Content-Type": "application/json",
-    }
-    resp = requests.post("https://graph.microsoft.com/v1.0/users/{}/sendMail".format(sender_email), headers=headers, json=payload)
-    if resp.status_code >= 400:
-        raise RuntimeError(f"Graph sendMail failed: {resp.status_code} {resp.text}")
-    return True
 
 
 def send_pickup_confirmation_email(pickup):
@@ -102,29 +54,6 @@ def send_pickup_confirmation_email(pickup):
         time_window=pickup.preferred_time_window.replace('_', ' ').title(),
         qr_data_uri=qr_data_uri,
     )
-
-    if app.config.get('GRAPH_TENANT_ID') and app.config.get('GRAPH_CLIENT_ID') and app.config.get('GRAPH_CLIENT_SECRET'):
-        try:
-            subject = f"Pickup Request Confirmed - {pickup.tracking_number}"
-            token = _graph_token()
-            sender_email = app.config.get('GRAPH_SENDER_EMAIL') or app.config.get('MAIL_DEFAULT_SENDER') or app.config.get('MAIL_USERNAME')
-            payload = {
-                "message": {
-                    "subject": subject,
-                    "body": {"contentType": "html", "content": html_body},
-                    "from": {"emailAddress": {"address": sender_email}},
-                    "toRecipients": [{"emailAddress": {"address": pickup.customer.email}}],
-                },
-                "saveToSentItems": "false",
-            }
-            headers = {"Authorization": f"Bearer {token}", "Content-Type": "application/json"}
-            resp = requests.post(f"https://graph.microsoft.com/v1.0/users/{sender_email}/sendMail", headers=headers, json=payload)
-            if resp.status_code >= 400:
-                raise RuntimeError(f"Graph sendMail failed: {resp.status_code} {resp.text}")
-            return True
-        except Exception as e:
-            app.logger.error(f"Graph pickup email failed: {e}")
-            return False
 
     if not app.config.get('MAIL_USERNAME') or not app.config.get('MAIL_PASSWORD'):
         return False
@@ -784,10 +713,6 @@ def apply_email_settings():
     app.config['MAIL_USERNAME'] = get_app_setting('mail_username', '')
     app.config['MAIL_PASSWORD'] = get_app_setting('mail_password', '')
     app.config['MAIL_DEFAULT_SENDER'] = get_app_setting('mail_default_sender', '') or get_app_setting('mail_username', '')
-    app.config['GRAPH_TENANT_ID'] = get_app_setting('graph_tenant_id', '')
-    app.config['GRAPH_CLIENT_ID'] = get_app_setting('graph_client_id', '')
-    app.config['GRAPH_CLIENT_SECRET'] = get_app_setting('graph_client_secret', '')
-    app.config['GRAPH_SENDER_EMAIL'] = get_app_setting('graph_sender_email', '') or get_app_setting('mail_default_sender', '') or get_app_setting('mail_username', '')
     app.config['PUBLIC_BASE_URL'] = get_app_setting('public_base_url', '') or 'https://erecycle.sultantech.ca'
 
 
@@ -800,10 +725,6 @@ def admin_email_settings():
         'mail_username': get_app_setting('mail_username', ''),
         'mail_password': get_app_setting('mail_password', ''),
         'mail_default_sender': get_app_setting('mail_default_sender', ''),
-        'graph_tenant_id': get_app_setting('graph_tenant_id', ''),
-        'graph_client_id': get_app_setting('graph_client_id', ''),
-        'graph_client_secret': get_app_setting('graph_client_secret', ''),
-        'graph_sender_email': get_app_setting('graph_sender_email', ''),
         'public_base_url': get_app_setting('public_base_url', 'https://erecycle.sultantech.ca'),
     }
 
@@ -814,10 +735,6 @@ def admin_email_settings():
         set_app_setting('mail_username', request.form.get('mail_username', '').strip())
         set_app_setting('mail_password', request.form.get('mail_password', '').strip())
         set_app_setting('mail_default_sender', request.form.get('mail_default_sender', '').strip())
-        set_app_setting('graph_tenant_id', request.form.get('graph_tenant_id', '').strip())
-        set_app_setting('graph_client_id', request.form.get('graph_client_id', '').strip())
-        set_app_setting('graph_client_secret', request.form.get('graph_client_secret', '').strip())
-        set_app_setting('graph_sender_email', request.form.get('graph_sender_email', '').strip())
         set_app_setting('public_base_url', request.form.get('public_base_url', '').strip())
 
         apply_email_settings()
@@ -839,20 +756,17 @@ def admin_test_email():
         return redirect(url_for('admin_email_settings'))
 
     try:
-        if app.config.get('GRAPH_TENANT_ID') and app.config.get('GRAPH_CLIENT_ID') and app.config.get('GRAPH_CLIENT_SECRET'):
-            send_mail_via_graph('EcoRecycle Test Email', 'This is a test email from EcoRecycle. Your Microsoft Graph settings are working correctly.', test_email)
-        else:
-            sender = app.config.get('MAIL_DEFAULT_SENDER') or app.config.get('MAIL_USERNAME')
-            msg = MIMEText('This is a test email from EcoRecycle. Your M365 settings are working correctly.')
-            msg['Subject'] = 'EcoRecycle Test Email'
-            msg['From'] = sender
-            msg['To'] = test_email
+        sender = app.config.get('MAIL_DEFAULT_SENDER') or app.config.get('MAIL_USERNAME')
+        msg = MIMEText('This is a test email from EcoRecycle. Your M365 settings are working correctly.')
+        msg['Subject'] = 'EcoRecycle Test Email'
+        msg['From'] = sender
+        msg['To'] = test_email
 
-            with smtplib.SMTP(app.config.get('MAIL_SERVER'), int(app.config.get('MAIL_PORT'))) as server:
-                if app.config.get('MAIL_USE_TLS'):
-                    server.starttls()
-                server.login(app.config.get('MAIL_USERNAME'), app.config.get('MAIL_PASSWORD'))
-                server.sendmail(sender, [test_email], msg.as_string())
+        with smtplib.SMTP(app.config.get('MAIL_SERVER'), int(app.config.get('MAIL_PORT'))) as server:
+            if app.config.get('MAIL_USE_TLS'):
+                server.starttls()
+            server.login(app.config.get('MAIL_USERNAME'), app.config.get('MAIL_PASSWORD'))
+            server.sendmail(sender, [test_email], msg.as_string())
 
         flash(f'Test email sent to {test_email}', 'success')
     except Exception as e:
