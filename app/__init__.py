@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, flash, jsonify
+from flask import Flask, render_template, request, redirect, url_for, flash, jsonify, session
 from flask_sqlalchemy import SQLAlchemy
 from flask_wtf import FlaskForm
 from wtforms import StringField, TextAreaField, SelectField, SubmitField
@@ -17,6 +17,11 @@ app = Flask(__name__)
 app.config['SECRET_KEY'] = 'dev-secret-key-change-in-production'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///erecycle.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+# Admin basic auth
+app.config['ADMIN_USERNAME'] = 'admin'
+app.config['ADMIN_PASSWORD'] = 'admin123'
+app.config['ADMIN_LOGIN_URL'] = '/admin/login'
 
 # Email / M365 configuration
 app.config['MAIL_SERVER'] = 'smtp.office365.com'
@@ -580,7 +585,40 @@ def api_reverse_geocode():
 
 # ========== ADMIN ROUTES ==========
 
+def admin_required(f):
+    from functools import wraps
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        if not session.get('admin_authenticated'):
+            return redirect(url_for('admin_login'))
+        return f(*args, **kwargs)
+    return decorated
+
+@app.route('/admin/login', methods=['GET', 'POST'])
+def admin_login():
+    class LoginForm(FlaskForm):
+        class Meta:
+            csrf = False
+        username = StringField('Username', validators=[DataRequired()])
+        password = StringField('Password', validators=[DataRequired()])
+        submit = SubmitField('Sign In')
+    form = LoginForm()
+    if form.validate_on_submit():
+        if form.username.data == app.config.get('ADMIN_USERNAME') and form.password.data == app.config.get('ADMIN_PASSWORD'):
+            session['admin_authenticated'] = True
+            next_url = request.args.get('next') or url_for('admin_dashboard')
+            return redirect(next_url)
+        flash('Invalid credentials.', 'danger')
+    return render_template('admin/login.html', form=form)
+
+@app.route('/admin/logout')
+def admin_logout():
+    session.pop('admin_authenticated', None)
+    flash('Logged out.', 'success')
+    return redirect(url_for('admin_login'))
+
 @app.route('/admin')
+@admin_required
 def admin_dashboard():
     # Summary statistics
     total = PickupRequest.query.count()
@@ -604,6 +642,7 @@ def admin_dashboard():
 
 
 @app.route('/admin/requests')
+@admin_required
 def admin_requests():
     status_filter = request.args.get('status', 'all')
     query = PickupRequest.query
@@ -614,6 +653,7 @@ def admin_requests():
 
 
 @app.route('/admin/request/<int:id>', methods=['GET', 'POST'])
+@admin_required
 def admin_request_detail(id):
     pickup = PickupRequest.query.get_or_404(id)
     form = AdminStatusUpdateForm(obj=pickup)
@@ -642,6 +682,7 @@ def admin_request_detail(id):
 
 
 @app.route('/admin/request/<int:id>/add-item', methods=['POST'])
+@admin_required
 def admin_add_item(id):
     pickup = PickupRequest.query.get_or_404(id)
     device_type_id = request.form.get('device_type_id')
@@ -667,6 +708,7 @@ def admin_add_item(id):
 
 
 @app.route('/admin/request/<int:id>/update-customer', methods=['POST'])
+@admin_required
 def admin_update_customer(id):
     pickup = PickupRequest.query.get_or_404(id)
     customer = pickup.customer
@@ -687,6 +729,7 @@ def admin_update_customer(id):
 
 
 @app.route('/admin/request/<int:item_id>/delete-item', methods=['POST'])
+@admin_required
 def admin_delete_item(item_id):
     item = PickupItem.query.get_or_404(item_id)
     pickup_id = item.pickup_request_id
@@ -697,12 +740,14 @@ def admin_delete_item(item_id):
 
 
 @app.route('/admin/device-types')
+@admin_required
 def admin_device_types():
     device_types = DeviceType.query.order_by(DeviceType.category, DeviceType.name).all()
     return render_template('admin/device_types.html', device_types=device_types)
 
 
 @app.route('/admin/device-types/add', methods=['POST'])
+@admin_required
 def admin_add_device_type():
     name = request.form.get('name')
     category = request.form.get('category', 'other')
@@ -719,6 +764,7 @@ def admin_add_device_type():
 
 
 @app.route('/admin/device-types/<int:id>/delete', methods=['POST'])
+@admin_required
 def admin_delete_device_type(id):
     device = DeviceType.query.get_or_404(id)
     db.session.delete(device)
@@ -728,6 +774,7 @@ def admin_delete_device_type(id):
 
 
 @app.route('/admin/request/<int:id>/print-label')
+@admin_required
 def admin_print_label(id):
     pickup = PickupRequest.query.get_or_404(id)
     return render_template('admin/print_label.html', pickup=pickup)
