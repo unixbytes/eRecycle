@@ -70,7 +70,6 @@ def send_pickup_confirmation_email(pickup):
     try:
         sender = app.config.get('MAIL_DEFAULT_SENDER') or app.config.get('MAIL_USERNAME')
         subject = f"Pickup Request Confirmed - {pickup.tracking_number}"
-        text_body = render_template('email/pickup_confirmation.txt', pickup=pickup, tracking_url=tracking_url)
         html_body = render_template(
             'email/pickup_confirmation.html',
             first_name=pickup.customer.first_name,
@@ -84,8 +83,7 @@ def send_pickup_confirmation_email(pickup):
         message['Subject'] = subject
         message['From'] = sender
         message['To'] = pickup.customer.email
-        message.set_content(text_body)
-        message.add_alternative(html_body, subtype='html')
+        message.set_content(html_body)
 
         buf = io.BytesIO()
         qr = qrcode.make(tracking_url, box_size=6, border=2)
