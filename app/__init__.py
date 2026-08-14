@@ -84,7 +84,7 @@ def send_pickup_confirmation_email(pickup):
         message['Subject'] = subject
         message['From'] = sender
         message['To'] = pickup.customer.email
-        message.set_content(html_body)
+        message.set_content(html_body, subtype='html')
 
         buf = io.BytesIO()
         qr = qrcode.make(tracking_url, box_size=6, border=2)
