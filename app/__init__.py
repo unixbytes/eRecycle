@@ -56,6 +56,7 @@ def send_pickup_confirmation_email(pickup):
     )
 
     if not app.config.get('MAIL_USERNAME') or not app.config.get('MAIL_PASSWORD'):
+        app.logger.warning('SMTP pickup email skipped: MAIL_USERNAME or MAIL_PASSWORD missing')
         return False
 
     try:
@@ -72,9 +73,54 @@ def send_pickup_confirmation_email(pickup):
             server.login(app.config.get('MAIL_USERNAME'), app.config.get('MAIL_PASSWORD'))
             server.sendmail(sender, [pickup.customer.email], msg.as_string())
 
+        app.logger.info(f"Pickup confirmation email sent to {pickup.customer.email} for {pickup.tracking_number}")
         return True
     except Exception as e:
-        app.logger.error(f"SMTP pickup email failed: {e}")
+        app.logger.error(f"SMTP pickup email failed for {pickup.tracking_number}: {e}")
+        return False
+
+
+def send_status_update_email(pickup, old_status=None):
+    public_base_url = (app.config.get('PUBLIC_BASE_URL') or 'https://erecycle.sultantech.ca').rstrip('/')
+    tracking_url = f"{public_base_url}/track/{pickup.tracking_number}"
+
+    subject = f"Pickup Status Updated - {pickup.tracking_number}"
+    body = f"""Hi {pickup.customer.first_name},
+
+Your pickup request status has been updated.
+
+Tracking Number: {pickup.tracking_number}
+Current Status: {pickup.status.replace('_', ' ').title()}
+{f"Previous Status: {old_status.replace('_', ' ').title()}" if old_status else ""}
+
+You can track your request here: {tracking_url}
+
+If you have any questions, please contact us with your tracking number.
+
+Thank you for recycling responsibly!
+"""
+
+    if not app.config.get('MAIL_USERNAME') or not app.config.get('MAIL_PASSWORD'):
+        app.logger.warning('SMTP status email skipped: MAIL_USERNAME or MAIL_PASSWORD missing')
+        return False
+
+    try:
+        sender = app.config.get('MAIL_DEFAULT_SENDER') or app.config.get('MAIL_USERNAME')
+        msg = MIMEText(body)
+        msg['Subject'] = subject
+        msg['From'] = sender
+        msg['To'] = pickup.customer.email
+
+        with smtplib.SMTP(app.config.get('MAIL_SERVER'), int(app.config.get('MAIL_PORT'))) as server:
+            if app.config.get('MAIL_USE_TLS'):
+                server.starttls()
+            server.login(app.config.get('MAIL_USERNAME'), app.config.get('MAIL_PASSWORD'))
+            server.sendmail(sender, [pickup.customer.email], msg.as_string())
+
+        app.logger.info(f"Status update email sent to {pickup.customer.email} for {pickup.tracking_number}: {pickup.status}")
+        return True
+    except Exception as e:
+        app.logger.error(f"SMTP status email failed for {pickup.tracking_number}: {e}")
         return False
 
 
@@ -572,6 +618,7 @@ def admin_request_detail(id):
             f"Status changed from {old_status} to {form.status.data}. {form.admin_notes.data or ''}".strip(),
             created_by='admin'
         )
+        send_status_update_email(pickup, old_status=old_status)
         flash(f'Request {pickup.tracking_number} updated to "{form.status.data}"', 'success')
         return redirect(url_for('admin_request_detail', id=id))
 
