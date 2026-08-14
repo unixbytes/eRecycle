@@ -1,7 +1,7 @@
 from flask import Flask, render_template, request, redirect, url_for, flash, jsonify, session
 from flask_sqlalchemy import SQLAlchemy
 from flask_wtf import FlaskForm
-from wtforms import StringField, TextAreaField, SelectField, SubmitField
+from wtforms import StringField, PasswordField, TextAreaField, SelectField, SubmitField
 from wtforms.validators import DataRequired, Email, Length, Regexp
 from datetime import datetime, timedelta
 import uuid
@@ -548,7 +548,7 @@ def admin_login():
         class Meta:
             csrf = False
         username = StringField('Username', validators=[DataRequired()])
-        password = StringField('Password', validators=[DataRequired()])
+        password = PasswordField('Password', validators=[DataRequired()])
         submit = SubmitField('Sign In')
     form = LoginForm()
     if form.validate_on_submit():
