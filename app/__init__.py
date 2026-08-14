@@ -68,7 +68,7 @@ def send_pickup_confirmation_email(pickup):
     try:
         sender = app.config.get('MAIL_DEFAULT_SENDER') or app.config.get('MAIL_USERNAME')
         subject = f"Pickup Request Confirmed - {pickup.tracking_number}"
-        msg = MIMEText(html_body, 'html')
+        msg = MIMEText(html_body, 'html', 'utf-8')
         msg['Subject'] = subject
         msg['From'] = sender
         msg['To'] = pickup.customer.email
@@ -112,7 +112,7 @@ Thank you for recycling responsibly!
 
     try:
         sender = app.config.get('MAIL_DEFAULT_SENDER') or app.config.get('MAIL_USERNAME')
-        msg = MIMEText(body)
+        msg = MIMEText(body, 'utf-8')
         msg['Subject'] = subject
         msg['From'] = sender
         msg['To'] = pickup.customer.email
