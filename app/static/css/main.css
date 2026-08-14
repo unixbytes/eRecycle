@@ -161,5 +161,9 @@ a { text-decoration: none; color: inherit; }
     .nav-container { flex-wrap: wrap; row-gap: 10px; }
     .hero h1 { font-size: 2rem; }
     .form-actions { flex-direction: column; }
+}
+.form-actions { display: flex; gap: 12px; align-items: center; justify-content: center; flex-wrap: wrap; }
+.form-actions .btn { width: auto; }
+@media (max-width: 768px) {
     .form-actions .btn { width: 100%; }
 }
