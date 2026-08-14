@@ -12,6 +12,7 @@ import base64
 from email.message import EmailMessage
 from email.mime.multipart import MIMEMultipart
 from email.mime.image import MIMEImage
+from email.mime.text import MIMEText
 import requests
 from flask_mail import Mail
 
@@ -89,7 +90,7 @@ def send_pickup_confirmation_email(pickup):
         qr = qrcode.make(tracking_url, box_size=6, border=2)
         qr.save(buf, format='PNG')
         qr_bytes = buf.getvalue()
-        message.get_payload()[-1].add_related(qr_bytes, 'image', 'png', cid='pickup-qr')
+        message.add_related(qr_bytes, 'image', 'png', cid='pickup-qr')
 
         with smtplib.SMTP(app.config.get('MAIL_SERVER'), int(app.config.get('MAIL_PORT'))) as server:
             if app.config.get('MAIL_USE_TLS'):
