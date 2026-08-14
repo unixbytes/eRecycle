@@ -291,47 +291,6 @@ def create_status_update(pickup_request_id, new_status, notes=None, created_by='
     return update
 
 
-def send_pickup_confirmation_email(pickup):
-    if not app.config.get('MAIL_USERNAME') or not app.config.get('MAIL_PASSWORD'):
-        return False
-
-    try:
-        tracking_url = url_for('track_request', tracking_number=pickup.tracking_number, _external=True)
-        subject = f"Pickup Request Confirmed - {pickup.tracking_number}"
-        body = f"""Hi {pickup.customer.first_name},
-
-Thank you for submitting your electronic recycling pickup request.
-
-Tracking Number: {pickup.tracking_number}
-Preferred Date: {pickup.preferred_date.strftime('%B %d, %Y')}
-Time Window: {pickup.preferred_time_window.replace('_', ' ').title()}
-
-You can track your request here: {tracking_url}
-
-If you need to make changes, please contact us with your tracking number.
-
-Thank you for recycling responsibly!
-"""
-
-        sender = app.config.get('MAIL_DEFAULT_SENDER') or app.config.get('MAIL_USERNAME')
-        msg = MIMEText(body)
-        msg['Subject'] = subject
-        msg['From'] = sender
-        msg['To'] = pickup.customer.email
-
-        with smtplib.SMTP(app.config.get('MAIL_SERVER'), int(app.config.get('MAIL_PORT'))) as server:
-            if app.config.get('MAIL_USE_TLS'):
-                server.starttls()
-            server.login(app.config.get('MAIL_USERNAME'), app.config.get('MAIL_PASSWORD'))
-            server.sendmail(sender, [pickup.customer.email], msg.as_string())
-
-        return True
-    except Exception:
-        return False
-
-
-# ========== CLIENT ROUTES ==========
-
 @app.route('/')
 def index():
     return render_template('index.html')
