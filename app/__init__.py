@@ -138,16 +138,17 @@ Thank you for recycling responsibly!
 
     try:
         sender = app.config.get('MAIL_DEFAULT_SENDER') or app.config.get('MAIL_USERNAME')
-        msg = MIMEText(body, 'utf-8')
-        msg['Subject'] = subject
-        msg['From'] = sender
-        msg['To'] = pickup.customer.email
+        message = EmailMessage()
+        message['Subject'] = subject
+        message['From'] = sender
+        message['To'] = pickup.customer.email
+        message.set_content(body)
 
         with smtplib.SMTP(app.config.get('MAIL_SERVER'), int(app.config.get('MAIL_PORT'))) as server:
             if app.config.get('MAIL_USE_TLS'):
                 server.starttls()
             server.login(app.config.get('MAIL_USERNAME'), app.config.get('MAIL_PASSWORD'))
-            server.sendmail(sender, [pickup.customer.email], msg.as_string())
+            server.send_message(message)
 
         app.logger.info(f"Status update email sent to {pickup.customer.email} for {pickup.tracking_number}: {pickup.status}")
         return True
