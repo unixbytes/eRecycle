@@ -621,6 +621,7 @@ def admin_logout():
     return redirect(url_for('admin_login'))
 
 @app.route('/admin')
+@app.route('/admin/', strict_slashes=False)
 @admin_required
 def admin_dashboard():
     # Summary statistics
