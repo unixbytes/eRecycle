@@ -14,8 +14,8 @@
     --gray-300: #d1d5db;
     --gray-200: #e5e7eb;
     --gray-100: #f3f4f6;
-    --gray-50: #f9fafb;
-    --white: #ffffff;
+    --gray-50: #f3f4f6;
+    --white: #f8f9fa;
     --red: #dc2626;
     --yellow: #d97706;
     --blue: #2563eb;
@@ -152,8 +152,7 @@ a { text-decoration: none; color: inherit; }
 @media (max-width: 768px) {
     .detail-layout { grid-template-columns: 1fr; }
     .form-row { grid-template-columns: 1fr; }
-    .nav-links { gap: 6px; }
+    .nav-links { display: none; }
     .nav-container { flex-wrap: wrap; row-gap: 10px; }
-    .nav-links { width: 100%; justify-content: flex-start; }
     .hero h1 { font-size: 2rem; }
 }

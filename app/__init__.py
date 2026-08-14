@@ -408,6 +408,9 @@ def request_pickup():
 
 @app.route('/track')
 def track_form():
+    tracking_number = request.args.get('tracking_number')
+    if tracking_number:
+        return redirect(url_for('track_request', tracking_number=tracking_number))
     return render_template('track_form.html')
 
 

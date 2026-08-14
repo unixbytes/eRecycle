@@ -22,7 +22,7 @@
             <h2 style="text-align: center;">🔍 Track Your Pickup Request</h2>
             <p style="text-align: center; color: var(--gray-600); margin: 12px 0 28px;">Enter your tracking number or scan your QR code to check the status.</p>
 
-            <form id="trackForm" method="GET" action="/track" style="max-width: 500px; margin: 0 auto;">
+            <form id="trackForm" style="max-width: 500px; margin: 0 auto;">
                 <div class="form-group">
                     <label for="tracking_number">Tracking Number</label>
                     <input type="text" id="tracking_number" name="tracking_number" required
@@ -68,9 +68,16 @@
                     { facingMode: "environment" },
                     { fps: 10, qrbox: { width: 250, height: 250 } },
                     (decodedText) => {
-                        const cleaned = decodedText.trim().replace(/[^A-Za-z0-9]/g, '').toUpperCase();
-                        trackingInput.value = cleaned;
-                        qrStatus.textContent = 'QR scanned: ' + cleaned;
+                        const cleaned = decodedText.trim();
+                        let trackingNumber = cleaned;
+                        const urlMatch = cleaned.match(/\/track\/([A-Za-z0-9]+)/i);
+                        if (urlMatch && urlMatch[1]) {
+                            trackingNumber = urlMatch[1].toUpperCase();
+                        } else {
+                            trackingNumber = cleaned.replace(/[^A-Za-z0-9]/g, '').toUpperCase();
+                        }
+                        trackingInput.value = trackingNumber;
+                        qrStatus.textContent = 'QR scanned: ' + trackingNumber;
                         stopScan();
                     },
                     () => {}
@@ -98,9 +105,14 @@
             }
         }
 
-        document.getElementById('trackForm').addEventListener('submit', () => {
+        document.getElementById('trackForm').addEventListener('submit', (e) => {
+            e.preventDefault();
             if (html5QrCode && html5QrCode.isScanning) {
                 stopScan();
+            }
+            const value = trackingInput.value.trim();
+            if (value) {
+                window.location.href = '/track/' + encodeURIComponent(value);
             }
         });
     </script>
