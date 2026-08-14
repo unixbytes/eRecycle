@@ -36,6 +36,12 @@ mail = Mail(app)
 db = SQLAlchemy(app)
 
 
+@app.before_request
+def ensure_email_settings():
+    if not app.config.get('MAIL_USERNAME'):
+        apply_email_settings()
+
+
 def send_pickup_confirmation_email(pickup):
     public_base_url = (app.config.get('PUBLIC_BASE_URL') or 'https://erecycle.sultantech.ca').rstrip('/')
     tracking_url = f"{public_base_url}/track/{pickup.tracking_number}"
