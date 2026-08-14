@@ -36,30 +36,30 @@
         </div>
 
         <div class="stats-grid">
-            <div class="stat-card">
+            <a href="/admin/requests?status=all" class="stat-card" style="text-decoration:none;">
                 <div class="stat-value">{{ stats.total }}</div>
                 <div class="stat-label">Total Requests</div>
-            </div>
-            <div class="stat-card">
+            </a>
+            <a href="/admin/requests?status=pending" class="stat-card" style="text-decoration:none;">
                 <div class="stat-value" style="color: var(--yellow);">{{ stats.pending }}</div>
                 <div class="stat-label">Pending</div>
-            </div>
-            <div class="stat-card">
+            </a>
+            <a href="/admin/requests?status=scheduled" class="stat-card" style="text-decoration:none;">
                 <div class="stat-value" style="color: #7c3aed;">{{ stats.scheduled }}</div>
                 <div class="stat-label">Scheduled</div>
-            </div>
-            <div class="stat-card">
+            </a>
+            <a href="/admin/requests?status=picked_up" class="stat-card" style="text-decoration:none;">
                 <div class="stat-value" style="color: #db2777;">{{ stats.picked_up }}</div>
                 <div class="stat-label">Picked Up</div>
-            </div>
-            <div class="stat-card">
+            </a>
+            <a href="/admin/requests?status=recycled" class="stat-card" style="text-decoration:none;">
                 <div class="stat-value" style="color: var(--green-600);">{{ stats.recycled }}</div>
                 <div class="stat-label">Recycled</div>
-            </div>
-            <div class="stat-card">
+            </a>
+            <a href="/admin/requests?status=cancelled" class="stat-card" style="text-decoration:none;">
                 <div class="stat-value" style="color: var(--red);">{{ stats.cancelled }}</div>
                 <div class="stat-label">Cancelled</div>
-            </div>
+            </a>
         </div>
 
         <div class="card">

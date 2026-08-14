@@ -103,7 +103,8 @@ a { text-decoration: none; color: inherit; }
 .admin-container { max-width: 1200px; margin: 0 auto; padding: 24px; }
 .admin-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
 .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 16px; margin-bottom: 32px; }
-.stat-card { background: var(--white); padding: 20px; border-radius: 8px; border: 1px solid var(--gray-200); text-align: center; }
+.stat-card { background: var(--white); padding: 20px; border-radius: 8px; border: 1px solid var(--gray-200); text-align: center; transition: box-shadow .15s ease, transform .15s ease; cursor: pointer; }
+.stat-card:hover { box-shadow: 0 6px 18px rgba(0,0,0,0.06); transform: translateY(-1px); }
 .stat-value { font-size: 2rem; font-weight: 700; color: var(--green-600); }
 .stat-label { color: var(--gray-600); font-size: 0.9rem; }
 
