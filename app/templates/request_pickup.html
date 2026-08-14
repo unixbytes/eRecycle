@@ -10,7 +10,8 @@
     <nav class="navbar">
         <div class="container nav-container">
             <a href="/" class="nav-brand">♻️ EcoRecycle</a>
-            <div class="nav-links">
+            <button class="nav-toggle" id="navToggle" aria-label="Toggle navigation" type="button">☰</button>
+            <div class="nav-links" id="navLinks">
                 <a href="/request-pickup" class="btn btn-primary">Schedule Pickup</a>
                 <a href="/track" class="btn btn-secondary">Track Request</a>
             </div>
@@ -207,6 +208,15 @@
         </div>
     </div>
 
+    <script>
+    (function() {
+        const toggle = document.getElementById('navToggle');
+        const links = document.getElementById('navLinks');
+        if (toggle && links) {
+            toggle.addEventListener('click', () => links.classList.toggle('open'));
+        }
+    })();
+    </script>
     <footer class="footer">
         <div class="container">
             <p>© 2026 EcoRecycle. Responsible electronic waste management.</p>
