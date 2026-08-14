@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EcoRecycle - Track Your Request</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container nav-container">
+            <a href="/" class="nav-brand">♻️ EcoRecycle</a>
+            <div class="nav-links">
+                <a href="/request-pickup" class="btn btn-primary">Schedule Pickup</a>
+                <a href="/track" class="btn btn-secondary">Track Request</a>
+                <a href="/admin" class="btn btn-secondary">Admin</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container tracking-container">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            {% for category, message in messages %}
+              <div class="alert alert-{{ category }}">{{ message }}</div>
+            {% endfor %}
+          {% endif %}
+        {% endwith %}
+
+        <div style="background: var(--white); padding: 24px; border-radius: 8px; border: 1px solid var(--gray-200);">
+            <h2>🔍 Track Your Pickup Request</h2>
+            <form method="GET" action="/track" style="margin-top: 16px;">
+                <div class="form-group">
+                    <label for="tracking_number">Enter Tracking Number</label>
+                    <input type="text" id="tracking_number" name="tracking_number" value="{{ pickup.tracking_number }}" readonly style="background: var(--gray-100); font-family: monospace; font-size: 1.1rem; letter-spacing: 2px;">
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">Track</button>
+                    <a href="/track" class="btn btn-secondary">Search Another</a>
+                </div>
+            </form>
+        </div>
+
+        <div style="background: var(--white); padding: 28px; border-radius: 8px; border: 1px solid var(--gray-200); margin-top: 20px;">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 16px; margin-bottom: 24px;">
+                <div>
+                    <h3 style="color: var(--gray-800);">Request #{{ pickup.tracking_number }}</h3>
+                    <p style="color: var(--gray-500); font-size: 0.9rem;">Submitted on {{ pickup.created_at.strftime('%B %d, %Y at %I:%M %p') }}</p>
+                </div>
+                <span class="badge badge-{{ pickup.status }}">{{ pickup.status|replace('_', ' ')|title }}</span>
+            </div>
+
+            {% if pickup.scheduled_pickup_date %}
+            <div class="info-row" style="margin-bottom: 16px;">
+                <span class="info-label">Scheduled Pickup:</span>
+                <span class="info-value">{{ pickup.scheduled_pickup_date.strftime('%B %d, %Y') }}</span>
+            </div>
+            {% endif %}
+            {% if pickup.actual_pickup_date %}
+            <div class="info-row" style="margin-bottom: 16px;">
+                <span class="info-label">Actual Pickup Date:</span>
+                <span class="info-value">{{ pickup.actual_pickup_date.strftime('%B %d, %Y') }}</span>
+            </div>
+            {% endif %}
+            <div class="info-row">
+                <span class="info-label">Preferred Time:</span>
+                <span class="info-value">{{ pickup.preferred_time_window|replace('_', ' ')|title }}</span>
+            </div>
+        </div>
+
+        {% if pickup.items %}
+        <div style="background: var(--white); padding: 28px; border-radius: 8px; border: 1px solid var(--gray-200); margin-top: 20px;">
+            <h3 style="color: var(--gray-800); margin-bottom: 16px;">📦 Items in This Request</h3>
+            <table class="data-table">
+                <thead>
+                    <tr><th>Device</th><th>Qty</th><th>Condition</th><th>Notes</th></tr>
+                </thead>
+                <tbody>
+                    {% for item in pickup.items %}
+                    <tr>
+                        <td>{{ item.device_type.name if item.device_type else item.custom_device_name }}</td>
+                        <td>{{ item.quantity }}</td>
+                        <td>{{ item.condition|title if item.condition else 'N/A' }}</td>
+                        <td>{{ item.notes or '-' }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% endif %}
+
+        {% if pickup.admin_notes %}
+        <div style="background: var(--gray-50); padding: 20px; border-radius: 8px; border: 1px solid var(--gray-200); margin-top: 20px;">
+            <h4 style="color: var(--gray-700); margin-bottom: 8px;">📝 Admin Notes</h4>
+            <p style="color: var(--gray-600);">{{ pickup.admin_notes }}</p>
+        </div>
+        {% endif %}
+
+        <div style="background: var(--white); padding: 28px; border-radius: 8px; border: 1px solid var(--gray-200); margin-top: 20px;">
+            <h3 style="color: var(--gray-800); margin-bottom: 20px;">📊 Status History</h3>
+            <ul class="status-timeline">
+                {% for update in pickup.status_history %}
+                <li class="{% if loop.last %}active{% endif %}">
+                    <div class="timeline-dot"></div>
+                    <div>
+                        <div class="timeline-title">{{ update.status|replace('_', ' ')|title }}</div>
+                        <div class="timeline-time">{{ update.created_at.strftime('%B %d, %Y • %I:%M %p') }}</div>
+                        {% if update.notes %}<div class="timeline-notes">{{ update.notes }}</div>{% endif %}
+                    </div>
+                </li>
+                {% else %}
+                <p style="color: var(--gray-500);">No status updates yet.</p>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+
+    <footer class="footer">
+        <div class="container">
+            <p>© 2026 EcoRecycle. Responsible electronic waste management.</p>
+        </div>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Email Settings - EcoRecycle Admin</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container nav-container">
+            <a href="/admin" class="nav-brand">♻️ EcoRecycle Admin</a>
+            <div class="nav-links">
+                <a href="/admin" class="btn btn-secondary">Dashboard</a>
+                <a href="/admin/requests" class="btn btn-secondary">All Requests</a>
+                <a href="/admin/device-types" class="btn btn-secondary">Device Types</a>
+                <a href="/admin/email-settings" class="btn btn-primary">Email Settings</a>
+                <a href="/" class="btn btn-secondary">Public Site</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="admin-container">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            {% for category, message in messages %}
+              <div class="alert alert-{{ category }}">{{ message }}</div>
+            {% endfor %}
+          {% endif %}
+        {% endwith %}
+
+        <div class="admin-header">
+            <h1>Email Settings</h1>
+        </div>
+
+        <div class="card">
+            <div class="card-title">Microsoft 365 SMTP Configuration</div>
+            <p style="color: var(--gray-600); margin-bottom: 20px;">
+                Configure your M365 service account for sending pickup confirmation emails.
+                These settings are stored securely in the application database.
+            </p>
+
+            <form method="POST">
+                <div class="form-group">
+                    <label>SMTP Server</label>
+                    <input type="text" name="mail_server" value="{{ settings.mail_server or 'smtp.office365.com' }}" class="form-control">
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>SMTP Port</label>
+                        <input type="number" name="mail_port" value="{{ settings.mail_port or '587' }}" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label>Use TLS</label>
+                        <select name="mail_use_tls" class="form-control">
+                            <option value="true" {% if settings.mail_use_tls != 'false' %}selected{% endif %}>Yes</option>
+                            <option value="false" {% if settings.mail_use_tls == 'false' %}selected{% endif %}>No</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Sender Email / Username</label>
+                    <input type="email" name="mail_username" value="{{ settings.mail_username or '' }}" class="form-control" placeholder="you@yourdomain.com" required>
+                </div>
+                <div class="form-group">
+                    <label>Password / App Password</label>
+                    <input type="password" name="mail_password" value="{{ settings.mail_password or '' }}" class="form-control" placeholder="Enter password or app password">
+                    <small class="help-text">For M365, use an app password if MFA is enabled.</small>
+                </div>
+                <div class="form-group">
+                    <label>Default Sender Email</label>
+                    <input type="email" name="mail_default_sender" value="{{ settings.mail_default_sender or '' }}" class="form-control" placeholder="noreply@yourdomain.com">
+                    <small class="help-text">Leave blank to use the username as sender.</small>
+                </div>
+
+                <div style="border-top: 1px solid var(--gray-200); padding-top: 20px; margin-top: 20px;">
+                    <h3 style="margin-bottom: 16px; color: var(--gray-800);">Microsoft Graph API (Recommended)</h3>
+                    <p style="color: var(--gray-600); margin-bottom: 16px;">
+                        Use Microsoft Graph API for modern, reliable email sending with your domain.
+                        This requires an app registration in Azure AD with <strong>Mail.Send</strong> permission.
+                    </p>
+
+                    <div class="form-group">
+                        <label>Tenant ID</label>
+                        <input type="text" name="graph_tenant_id" value="{{ settings.graph_tenant_id or '' }}" class="form-control" placeholder="your-tenant-id">
+                    </div>
+                    <div class="form-group">
+                        <label>Client ID</label>
+                        <input type="text" name="graph_client_id" value="{{ settings.graph_client_id or '' }}" class="form-control" placeholder="your-client-id">
+                    </div>
+                    <div class="form-group">
+                        <label>Client Secret</label>
+                        <input type="password" name="graph_client_secret" value="{{ settings.graph_client_secret or '' }}" class="form-control" placeholder="your-client-secret">
+                    </div>
+                    <div class="form-group">
+                        <label>Sender Email Address</label>
+                        <input type="email" name="graph_sender_email" value="{{ settings.graph_sender_email or '' }}" class="form-control" placeholder="noreply@yourdomain.com">
+                        <small class="help-text">The mailbox to send from. Must match the authenticated user or have Send As permission.</small>
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">Save Settings</button>
+                    <a href="/admin" class="btn btn-secondary">Cancel</a>
+                </div>
+            </form>
+        </div>
+
+        <div class="card">
+            <div class="card-title">Test Email</div>
+            <p style="color: var(--gray-600); margin-bottom: 16px;">
+                Send a test email to verify your configuration.
+            </p>
+            <form method="POST" action="/admin/email-settings/test">
+                <div class="form-group">
+                    <label>Test Recipient Email</label>
+                    <input type="email" name="test_email" class="form-control" placeholder="test@example.com" required>
+                </div>
+                <button type="submit" class="btn btn-secondary">Send Test Email</button>
+            </form>
+        </div>
+    </div>
+
+    <footer class="footer">
+        <div class="container">
+            <p>© 2026 EcoRecycle Admin Dashboard</p>
+        </div>
+    </footer>
+</body>
+</html>

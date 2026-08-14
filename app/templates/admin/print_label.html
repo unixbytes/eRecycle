@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Print Label - {{ pickup.tracking_number }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+    <style>
+        @media print {
+            body * { visibility: hidden; }
+            .print-label, .print-label * { visibility: visible; }
+            .print-label { position: absolute; left: 0; top: 0; border: 2px dashed #000 !important; }
+            .barcode { font-size: 0.9rem !important; letter-spacing: 2px !important; padding: 8px !important; }
+            .print-label h2 { font-size: 1.1rem !important; margin-bottom: 8px !important; }
+            .info-row { font-size: 0.75rem !important; padding: 4px 0 !important; }
+            .print-label button { display: none !important; }
+        }
+    </style>
+</head>
+<body>
+    <div class="print-label">
+        <h2>♻️ EcoRecycle Pickup Label</h2>
+        <div class="barcode">{{ pickup.tracking_number }}</div>
+        <img src="{{ url_for('qr_code_png', tracking_number=pickup.tracking_number) }}" alt="QR Code" style="display:block; margin: 0 auto 16px; width: 180px; height: 180px;">
+        <div class="info-row">
+            <span class="info-label">Tracking #:</span>
+            <span class="info-value" style="font-size: 1.3rem; letter-spacing: 2px;">{{ pickup.tracking_number }}</span>
+        </div>
+        <div class="info-row">
+            <span class="info-label">Customer:</span>
+            <span class="info-value">{{ pickup.customer.first_name }} {{ pickup.customer.last_name }}</span>
+        </div>
+        <div class="info-row">
+            <span class="info-label">Phone:</span>
+            <span class="info-value">{{ pickup.customer.phone or 'N/A' }}</span>
+        </div>
+        <div class="info-row">
+            <span class="info-label">Address:</span>
+            <span class="info-value">{{ pickup.customer.address_line1 }}{% if pickup.customer.address_line2 %}, {{ pickup.customer.address_line2 }}{% endif %}, {{ pickup.customer.city }}, {{ pickup.customer.state }} {{ pickup.customer.zip_code }}</span>
+        </div>
+        <div class="info-row">
+            <span class="info-label">Preferred Date:</span>
+            <span class="info-value">{{ pickup.preferred_date.strftime('%B %d, %Y') }}</span>
+        </div>
+        <div class="info-row">
+            <span class="info-label">Time Window:</span>
+            <span class="info-value">{{ pickup.preferred_time_window|replace('_', ' ')|title }}</span>
+        </div>
+        {% if pickup.scheduled_pickup_date %}
+        <div class="info-row">
+            <span class="info-label">Scheduled Pickup:</span>
+            <span class="info-value">{{ pickup.scheduled_pickup_date.strftime('%B %d, %Y') }}</span>
+        </div>
+        {% endif %}
+
+        <div style="margin-top: 24px; border-top: 1px dashed var(--gray-400); padding-top: 12px;">
+            <h4 style="margin-bottom: 8px; color: var(--gray-700);">Items</h4>
+            <ul style="padding-left: 20px; color: var(--gray-700);">
+                {% for item in pickup.items %}
+                <li>{{ item.quantity }}× {{ item.device_type.name if item.device_type else item.custom_device_name }} {% if item.condition %}({{ item.condition|title }}){% endif %}</li>
+                {% else %}
+                <li style="color: var(--gray-500);">No items listed</li>
+                {% endfor %}
+            </ul>
+        </div>
+
+        <div style="margin-top: 24px; text-align: center;">
+            <button onclick="window.print()" class="btn btn-primary">Print Label</button>
+        </div>
+    </div>
+</body>
+</html>

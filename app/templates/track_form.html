@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EcoRecycle - Track Request</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container nav-container">
+            <a href="/" class="nav-brand">♻️ EcoRecycle</a>
+            <div class="nav-links">
+                <a href="/request-pickup" class="btn btn-primary">Schedule Pickup</a>
+                <a href="/track" class="btn btn-secondary">Track Request</a>
+                <a href="/admin" class="btn btn-secondary">Admin</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container tracking-container" style="padding-top: 60px;">
+        <div style="background: var(--white); padding: 36px; border-radius: 10px; border: 1px solid var(--gray-200);">
+            <h2 style="text-align: center;">🔍 Track Your Pickup Request</h2>
+            <p style="text-align: center; color: var(--gray-600); margin: 12px 0 28px;">Enter your tracking number or scan your QR code to check the status.</p>
+
+            <form id="trackForm" method="GET" action="/track" style="max-width: 500px; margin: 0 auto;">
+                <div class="form-group">
+                    <label for="tracking_number">Tracking Number</label>
+                    <input type="text" id="tracking_number" name="tracking_number" required
+                           placeholder="e.g., ABC12345"
+                           style="font-family: monospace; font-size: 1.1rem; letter-spacing: 2px; text-align: center;">
+                </div>
+                <button type="submit" class="btn btn-primary btn-lg" style="width: 100%;">Track Request</button>
+            </form>
+
+            <div style="text-align: center; margin: 20px 0;">
+                <button type="button" id="scanQrButton" class="btn btn-secondary">Scan QR Code</button>
+            </div>
+
+            <div id="qr-reader" style="max-width: 500px; margin: 0 auto; display:none;"></div>
+            <div id="qr-status" style="text-align: center; margin-top: 12px; color: var(--gray-700);"></div>
+        </div>
+
+        <div style="background: var(--white); padding: 24px; border-radius: 8px; border: 1px solid var(--gray-200); margin-top: 20px;">
+            <h3 style="color: var(--gray-800); margin-bottom: 12px;">ℹ️ How to find your tracking number</h3>
+            <p style="color: var(--gray-600);">Your tracking number was sent to your email when you submitted your pickup request. It typically looks like: <strong style="font-family: monospace; letter-spacing: 1px;">A1B2C3D4</strong></p>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+    <script>
+        const scanButton = document.getElementById('scanQrButton');
+        const qrReaderDiv = document.getElementById('qr-reader');
+        const qrStatus = document.getElementById('qr-status');
+        const trackingInput = document.getElementById('tracking_number');
+        let html5QrCode = null;
+
+        scanButton.addEventListener('click', () => {
+            if (!html5QrCode) {
+                html5QrCode = new Html5Qrcode("qr-reader");
+            }
+
+            if (qrReaderDiv.style.display === 'none') {
+                qrReaderDiv.style.display = 'block';
+                scanButton.textContent = 'Cancel Scan';
+                qrStatus.textContent = 'Starting camera...';
+
+                html5QrCode.start(
+                    { facingMode: "environment" },
+                    { fps: 10, qrbox: { width: 250, height: 250 } },
+                    (decodedText) => {
+                        const cleaned = decodedText.trim().replace(/[^A-Za-z0-9]/g, '').toUpperCase();
+                        trackingInput.value = cleaned;
+                        qrStatus.textContent = 'QR scanned: ' + cleaned;
+                        stopScan();
+                    },
+                    () => {}
+                ).catch(() => {
+                    qrStatus.textContent = 'Camera access failed or was denied.';
+                });
+            } else {
+                stopScan();
+            }
+        });
+
+        function stopScan() {
+            if (html5QrCode && html5QrCode.isScanning) {
+                html5QrCode.stop().then(() => {
+                    html5QrCode.clear();
+                    qrReaderDiv.style.display = 'none';
+                    scanButton.textContent = 'Scan QR Code';
+                }).catch(() => {
+                    qrReaderDiv.style.display = 'none';
+                    scanButton.textContent = 'Scan QR Code';
+                });
+            } else {
+                qrReaderDiv.style.display = 'none';
+                scanButton.textContent = 'Scan QR Code';
+            }
+        }
+
+        document.getElementById('trackForm').addEventListener('submit', () => {
+            if (html5QrCode && html5QrCode.isScanning) {
+                stopScan();
+            }
+        });
+    </script>
+
+    <footer class="footer">
+        <div class="container">
+            <p>© 2026 EcoRecycle. Responsible electronic waste management.</p>
+        </div>
+    </footer>
+</body>
+</html>

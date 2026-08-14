@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>All Requests - EcoRecycle Admin</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container nav-container">
+            <a href="/admin" class="nav-brand">♻️ EcoRecycle Admin</a>
+            <div class="nav-links">
+                <a href="/admin" class="btn btn-secondary">Dashboard</a>
+                <a href="/admin/requests" class="btn btn-primary">All Requests</a>
+                <a href="/admin/device-types" class="btn btn-secondary">Device Types</a>
+                <a href="/admin/email-settings" class="btn btn-secondary">Email Settings</a>
+                <a href="/" class="btn btn-secondary">Public Site</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="admin-container">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            {% for category, message in messages %}
+              <div class="alert alert-{{ category }}">{{ message }}</div>
+            {% endfor %}
+          {% endif %}
+        {% endwith %}
+
+        <div class="admin-header">
+            <h1>All Pickup Requests</h1>
+        </div>
+
+        <div class="filter-tabs">
+            <a href="/admin/requests?status=all" class="filter-tab {% if status_filter == 'all' %}active{% endif %}">All</a>
+            <a href="/admin/requests?status=pending" class="filter-tab {% if status_filter == 'pending' %}active{% endif %}">Pending</a>
+            <a href="/admin/requests?status=confirmed" class="filter-tab {% if status_filter == 'confirmed' %}active{% endif %}">Confirmed</a>
+            <a href="/admin/requests?status=scheduled" class="filter-tab {% if status_filter == 'scheduled' %}active{% endif %}">Scheduled</a>
+            <a href="/admin/requests?status=picked_up" class="filter-tab {% if status_filter == 'picked_up' %}active{% endif %}">Picked Up</a>
+            <a href="/admin/requests?status=processing" class="filter-tab {% if status_filter == 'processing' %}active{% endif %}">Processing</a>
+            <a href="/admin/requests?status=recycled" class="filter-tab {% if status_filter == 'recycled' %}active{% endif %}">Recycled</a>
+            <a href="/admin/requests?status=cancelled" class="filter-tab {% if status_filter == 'cancelled' %}active{% endif %}">Cancelled</a>
+        </div>
+
+        {% if requests %}
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Tracking #</th>
+                    <th>Customer</th>
+                    <th>Email</th>
+                    <th>Preferred Date</th>
+                    <th>Scheduled</th>
+                    <th>Status</th>
+                    <th>Created</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for pickup in requests %}
+                <tr>
+                    <td><a href="/admin/request/{{ pickup.id }}" style="color: var(--green-600); font-weight: 600;">{{ pickup.tracking_number }}</a></td>
+                    <td>{{ pickup.customer.first_name }} {{ pickup.customer.last_name }}</td>
+                    <td>{{ pickup.customer.email }}</td>
+                    <td>{{ pickup.preferred_date.strftime('%Y-%m-%d') }}</td>
+                    <td>{{ pickup.scheduled_pickup_date.strftime('%Y-%m-%d') if pickup.scheduled_pickup_date else '-' }}</td>
+                    <td><span class="badge badge-{{ pickup.status }}">{{ pickup.status|replace('_', ' ')|title }}</span></td>
+                    <td>{{ pickup.created_at.strftime('%Y-%m-%d') }}</td>
+                    <td>
+                        <a href="/admin/request/{{ pickup.id }}" class="btn btn-sm btn-primary">Manage</a>
+                        <a href="/track/{{ pickup.tracking_number }}" class="btn btn-sm btn-secondary" target="_blank">View</a>
+                        <a href="/admin/request/{{ pickup.id }}/print-label" class="btn btn-sm btn-secondary" target="_blank">Print</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <div class="card">
+            <p style="color: var(--gray-500); text-align: center; padding: 20px;">No requests found for this filter.</p>
+        </div>
+        {% endif %}
+    </div>
+
+    <footer class="footer">
+        <div class="container">
+            <p>© 2026 EcoRecycle Admin Dashboard</p>
+        </div>
+    </footer>
+</body>
+</html>

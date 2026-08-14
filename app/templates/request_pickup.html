@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Schedule Pickup - EcoRecycle</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container nav-container">
+            <a href="/" class="nav-brand">♻️ EcoRecycle</a>
+            <div class="nav-links">
+                <a href="/request-pickup" class="btn btn-primary">Schedule Pickup</a>
+                <a href="/track" class="btn btn-secondary">Track Request</a>
+                <a href="/admin" class="btn btn-secondary">Admin</a>
+            </div>
+        </div>
+    </nav>
+
+    <section style="background: linear-gradient(135deg, var(--green-700), var(--green-500)); color: var(--white); padding: 48px 20px; text-align: center;">
+        <div class="container">
+            <h1 style="font-size: 2.2rem; margin-bottom: 10px;">Schedule a Pickup</h1>
+            <p style="opacity: 0.95; font-size: 1.1rem;">Fill out the form below and we'll collect your electronics at your preferred time.</p>
+        </div>
+    </section>
+
+    <div class="container" style="max-width: 900px; padding: 32px 20px 60px;">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            {% for category, message in messages %}
+              <div class="alert alert-{{ category }}">{{ message }}</div>
+            {% endfor %}
+          {% endif %}
+        {% endwith %}
+
+        <div style="background: var(--white); border: 1px solid var(--gray-200); border-radius: 12px; padding: 28px 28px 12px; box-shadow: 0 1px 2px rgba(0,0,0,0.04);">
+            <form method="POST" novalidate>
+                {{ form.hidden_tag() }}
+
+                <h2 style="margin-bottom: 18px; color: var(--green-700); font-size: 1.15rem;">Contact Information</h2>
+                <div class="form-row">
+                    <div class="form-group">
+                        {{ form.first_name.label }}
+                        {{ form.first_name(class="form-control") }}
+                        {% if form.first_name.errors %}<span class="field-error">{{ form.first_name.errors[0] }}</span>{% endif %}
+                    </div>
+                    <div class="form-group">
+                        {{ form.last_name.label }}
+                        {{ form.last_name(class="form-control") }}
+                        {% if form.last_name.errors %}<span class="field-error">{{ form.last_name.errors[0] }}</span>{% endif %}
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        {{ form.email.label }}
+                        {{ form.email(class="form-control") }}
+                        {% if form.email.errors %}<span class="field-error">{{ form.email.errors[0] }}</span>{% endif %}
+                    </div>
+                    <div class="form-group">
+                        {{ form.phone.label }}
+                        {{ form.phone(class="form-control", placeholder="(555) 123-4567") }}
+                        {% if form.phone.errors %}<span class="field-error">{{ form.phone.errors[0] }}</span>{% endif %}
+                    </div>
+                </div>
+
+                <div style="border-top: 1px solid var(--gray-200); margin: 28px 0;"></div>
+                <h2 style="margin-bottom: 18px; color: var(--green-700); font-size: 1.15rem;">Pickup Address</h2>
+                <div class="form-group">
+                    {{ form.address_line1.label }}
+                    <div style="display: flex; align-items: stretch; gap: 10px;">
+                        {{ form.address_line1(class="form-control", id="address_line1", autocomplete="off", autocorrect="off", spellcheck="false", style="flex: 1;") }}
+                        <button type="button" id="getLocationBtn" class="btn btn-secondary btn-icon-only" title="Get current location" style="align-self: flex-start; margin-top: 2px;">
+                            📍
+                        </button>
+                    </div>
+                    {% if form.address_line1.errors %}<span class="field-error">{{ form.address_line1.errors[0] }}</span>{% endif %}
+                    <small id="locationStatus" class="help-text" style="display: none;"></small>
+                </div>
+                <div class="form-group">
+                    {{ form.address_line2.label }}
+                    {{ form.address_line2(class="form-control", placeholder="Apt, Suite, Unit (optional)", autocomplete="off") }}
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        {{ form.city.label }}
+                        {{ form.city(class="form-control", id="city", autocomplete="off") }}
+                        {% if form.city.errors %}<span class="field-error">{{ form.city.errors[0] }}</span>{% endif %}
+                    </div>
+                    <div class="form-group">
+                        {{ form.state.label }}
+                        {{ form.state(class="form-control", id="state", autocomplete="off") }}
+                        {% if form.state.errors %}<span class="field-error">{{ form.state.errors[0] }}</span>{% endif %}
+                    </div>
+                    <div class="form-group">
+                        {{ form.zip_code.label }}
+                        {{ form.zip_code(class="form-control", id="zip_code", autocomplete="off") }}
+                        {% if form.zip_code.errors %}<span class="field-error">{{ form.zip_code.errors[0] }}</span>{% endif %}
+                    </div>
+                </div>
+
+                <div style="border-top: 1px solid var(--gray-200); margin: 28px 0;"></div>
+                <h2 style="margin-bottom: 18px; color: var(--green-700); font-size: 1.15rem;">Pickup Details</h2>
+                <div class="form-row">
+                    <div class="form-group">
+                        {{ form.preferred_date.label }}
+                        {{ form.preferred_date(class="form-control", type="date") }}
+                        {% if form.preferred_date.errors %}<span class="field-error">{{ form.preferred_date.errors[0] }}</span>{% endif %}
+                    </div>
+                    <div class="form-group">
+                        {{ form.preferred_time_window.label }}
+                        {{ form.preferred_time_window(class="form-control") }}
+                    </div>
+                </div>
+                <div class="form-group">
+                    {{ form.estimated_weight.label }}
+                    {{ form.estimated_weight(class="form-control", placeholder="e.g., 15 (in kg)") }}
+                    <small class="help-text">Optional — helps us prepare the right vehicle.</small>
+                </div>
+                <div class="form-group">
+                    {{ form.notes.label }}
+                    {{ form.notes(class="form-control", rows="4", placeholder="List items to be recycled, access instructions, or other relevant info...") }}
+                </div>
+
+                <div class="form-actions" style="margin-top: 28px; padding-top: 20px; border-top: 1px solid var(--gray-200);">
+                    {{ form.submit(class="btn btn-primary btn-lg") }}
+                    <a href="/" class="btn btn-secondary btn-lg">Cancel</a>
+                </div>
+                </form>
+
+                <script>
+                (function() {
+                    const getLocationBtn = document.getElementById('getLocationBtn');
+                    const locationStatus = document.getElementById('locationStatus');
+                    const addressLine1 = document.getElementById('address_line1');
+                    const cityField = document.getElementById('city');
+                    const stateField = document.getElementById('state');
+                    const zipField = document.getElementById('zip_code');
+
+                    if (!getLocationBtn) return;
+
+                    getLocationBtn.addEventListener('click', function() {
+                        var isSecure = window.isSecureContext || location.hostname === 'localhost' || location.hostname === '127.0.0.1';
+                        if (!isSecure) {
+                            showStatus('Location requires HTTPS or localhost. On your local network, open http://localhost:5001 or use HTTPS.', true);
+                            return;
+                        }
+
+                        showStatus('Getting your location...', false);
+                        getLocationBtn.disabled = true;
+
+                        if (navigator.geolocation) {
+                            navigator.geolocation.getCurrentPosition(
+                                function(position) {
+                                    const lat = position.coords.latitude;
+                                    const lng = position.coords.longitude;
+                                    lookupAddress(lat, lng);
+                                },
+                                function(error) {
+                                    let msg = 'Unable to get location.';
+                                    if (error.code === 1) msg = 'Location access denied. Check browser permissions, or use http://localhost:5001 / HTTPS.';
+                                    else if (error.code === 2) msg = 'Location unavailable. Please enter address manually.';
+                                    else if (error.code === 3) msg = 'Location request timed out. Please try again.';
+                                    showStatus(msg, true);
+                                    getLocationBtn.disabled = false;
+                                },
+                                { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
+                            );
+                        } else {
+                            showStatus('Geolocation is not supported by your browser.', true);
+                            getLocationBtn.disabled = false;
+                        }
+                    });
+
+                    function lookupAddress(lat, lng) {
+                        showStatus('Location found. Looking up address...', false);
+                        fetch('/api/reverse-geocode?lat=' + encodeURIComponent(lat) + '&lng=' + encodeURIComponent(lng))
+                            .then(function(response) { return response.json(); })
+                            .then(function(data) {
+                                if (data.error) {
+                                    showStatus('Could not find address: ' + data.error, true);
+                                    return;
+                                }
+                                if (addressLine1) addressLine1.value = data.street || '';
+                                if (cityField) cityField.value = data.city || '';
+                                if (stateField) stateField.value = data.state || '';
+                                if (zipField) zipField.value = data.zip || '';
+                                var provider = data.provider ? ' via ' + data.provider : '';
+                                showStatus('Address filled in' + provider + '. Please review and edit if needed.', false);
+                            })
+                            .catch(function(err) {
+                                showStatus('Failed to look up address: ' + (err.message || err).substring(0, 200) + '. Please enter manually.', true);
+                            })
+                            .finally(function() {
+                                getLocationBtn.disabled = false;
+                            });
+                    }
+
+                    function showStatus(message, isError) {
+                        if (!locationStatus) return;
+                        locationStatus.textContent = message;
+                        locationStatus.style.display = 'block';
+                        locationStatus.style.color = isError ? 'var(--red)' : 'var(--green-600)';
+                    }
+                })();
+                </script>
+        </div>
+    </div>
+
+    <footer class="footer">
+        <div class="container">
+            <p>© 2026 EcoRecycle. Responsible electronic waste management.</p>
+        </div>
+    </footer>
+</body>
+</html>

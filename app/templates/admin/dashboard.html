@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - EcoRecycle</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container nav-container">
+            <a href="/" class="nav-brand">♻️ EcoRecycle Admin</a>
+            <div class="nav-links">
+                <a href="/admin" class="btn btn-secondary">Dashboard</a>
+                <a href="/admin/requests" class="btn btn-secondary">All Requests</a>
+                <a href="/admin/device-types" class="btn btn-secondary">Device Types</a>
+                <a href="/admin/email-settings" class="btn btn-secondary">Email Settings</a>
+                <a href="/" class="btn btn-secondary">Public Site</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="admin-container">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            {% for category, message in messages %}
+              <div class="alert alert-{{ category }}">{{ message }}</div>
+            {% endfor %}
+          {% endif %}
+        {% endwith %}
+
+        <div class="admin-header">
+            <h1>Dashboard</h1>
+            <span style="color: var(--gray-500);">{{ "Now" if true else "" }}</span>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-value">{{ stats.total }}</div>
+                <div class="stat-label">Total Requests</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" style="color: var(--yellow);">{{ stats.pending }}</div>
+                <div class="stat-label">Pending</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" style="color: #7c3aed;">{{ stats.scheduled }}</div>
+                <div class="stat-label">Scheduled</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" style="color: #db2777;">{{ stats.picked_up }}</div>
+                <div class="stat-label">Picked Up</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" style="color: var(--green-600);">{{ stats.recycled }}</div>
+                <div class="stat-label">Recycled</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" style="color: var(--red);">{{ stats.cancelled }}</div>
+                <div class="stat-label">Cancelled</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-title">📅 Upcoming Pickups</div>
+            {% if upcoming %}
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Tracking #</th>
+                        <th>Customer</th>
+                        <th>Scheduled</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for pickup in upcoming %}
+                    <tr>
+                        <td><a href="/admin/request/{{ pickup.id }}" style="color: var(--green-600); font-weight: 600;">{{ pickup.tracking_number }}</a></td>
+                        <td>{{ pickup.customer.first_name }} {{ pickup.customer.last_name }}</td>
+                        <td>{{ pickup.scheduled_pickup_date.strftime('%b %d, %Y') if pickup.scheduled_pickup_date else '-' }}</td>
+                        <td><span class="badge badge-{{ pickup.status }}">{{ pickup.status|replace('_', ' ')|title }}</span></td>
+                        <td><a href="/admin/request/{{ pickup.id }}" class="btn btn-sm btn-primary">Manage</a></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <p style="color: var(--gray-500);">No upcoming pickups scheduled.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <footer class="footer">
+        <div class="container">
+            <p>© 2026 EcoRecycle Admin Dashboard</p>
+        </div>
+    </footer>
+</body>
+</html>

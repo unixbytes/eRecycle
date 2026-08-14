@@ -1,0 +1,23 @@
+[build-system]
+requires = ["flask>=3.0", "flask-sqlalchemy>=3.1", "flask-wtf>=1.2", "wtforms>=3.1"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "erecycle"
+version = "0.1.0"
+description = "Electronic recycling management system"
+requires-python = ">=3.11"
+dependencies = [
+    "flask>=3.0",
+    "flask-mail>=0.10.0",
+    "flask-sqlalchemy>=3.1",
+    "flask-wtf>=1.2",
+    "msal>=1.37.0",
+    "qrcode[pil]>=8.2",
+    "requests>=2.34.2",
+    "wtforms>=3.1",
+]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["app*"]

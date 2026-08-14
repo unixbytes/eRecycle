@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EcoRecycle - Electronic Waste Recycling</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container nav-container">
+            <a href="/" class="nav-brand">♻️ EcoRecycle</a>
+            <div class="nav-links">
+                <a href="/request-pickup" class="btn btn-primary">Schedule Pickup</a>
+                <a href="/track" class="btn btn-secondary">Track Request</a>
+                <a href="/admin" class="btn btn-secondary">Admin</a>
+            </div>
+        </div>
+    </nav>
+
+    <section class="hero">
+        <div class="container">
+            <h1>Electronic Recycling Made Easy</h1>
+            <p class="hero-subtitle">Schedule a pickup, we'll handle the responsible recycling.</p>
+            <div class="hero-buttons">
+                <a href="/request-pickup" class="btn btn-primary btn-lg">Schedule a Pickup</a>
+                <a href="/track" class="btn btn-secondary btn-lg">Track My Request</a>
+            </div>
+        </div>
+    </section>
+
+    <section class="features">
+        <div class="container">
+            <h2>How It Works</h2>
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">📋</div>
+                    <h3>1. Schedule Pickup</h3>
+                    <p>Fill out the pickup request form with your details and preferred date.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🚛</div>
+                    <h3>2. We Collect</h3>
+                    <p>Our team arrives at your location to collect your electronic waste safely.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">♻️</div>
+                    <h3>3. Responsible Recycling</h3>
+                    <p>Devices are processed through certified eco-friendly recycling channels.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">📊</div>
+                    <h3>4. Track Progress</h3>
+                    <p>Monitor your request status in real-time through our tracking portal.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="accepted">
+        <div class="container">
+            <h2>What We Accept</h2>
+            <div class="accepted-grid">
+                <div class="accepted-item">💻 Computers & Laptops</div>
+                <div class="accepted-item">📱 Smartphones & Tablets</div>
+                <div class="accepted-item">🖥️ Monitors & TVs</div>
+                <div class="accepted-item">🖨️ Printers & Scanners</div>
+                <div class="accepted-item">🔋 Batteries & Power Supplies</div>
+                <div class="accepted-item">🔌 Cables & Accessories</div>
+            </div>
+        </div>
+    </section>
+
+    <section class="cta-section">
+        <div class="container">
+            <h2>Ready to recycle your electronics?</h2>
+            <p>Schedule a pickup today and contribute to a greener future.</p>
+            <a href="/request-pickup" class="btn btn-primary btn-lg">Get Started</a>
+        </div>
+    </section>
+
+    <footer class="footer">
+        <div class="container">
+            <p>© 2026 EcoRecycle. Responsible electronic waste management.</p>
+        </div>
+    </footer>
+</body>
+</html>
