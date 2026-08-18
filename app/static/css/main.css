@@ -13,9 +13,9 @@
     --gray-400: #9ca3af;
     --gray-300: #d1d5db;
     --gray-200: #e5e7eb;
-    --gray-100: #f3f4f6;
-    --gray-50: #f3f4f6;
-    --white: #f8f9fa;
+    --gray-100: #e5e7eb;
+    --gray-50: #e5e7eb;
+    --white: #f1f2f4;
     --red: #dc2626;
     --yellow: #d97706;
     --blue: #2563eb;
@@ -75,7 +75,7 @@ a { text-decoration: none; color: inherit; }
 .cta-section p { margin: 16px 0 24px; opacity: 0.95; font-size: 1.1rem; }
 
 /* ===== Footer ===== */
-.footer { background: var(--gray-800); color: var(--gray-400); padding: 20px; text-align: center; font-size: 0.9rem; }
+.footer { background: var(--gray-800); color: #d1d5db; padding: 20px; text-align: center; font-size: 0.9rem; }
 
 /* ===== Forms ===== */
 .form-container { max-width: 700px; margin: 40px auto; background: var(--white); padding: 36px; border-radius: 10px; border: 1px solid var(--gray-200); }
