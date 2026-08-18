@@ -9,6 +9,7 @@ import io
 import qrcode
 import smtplib
 import base64
+import threading
 from email.message import EmailMessage
 from email.mime.multipart import MIMEMultipart
 from email.mime.image import MIMEImage
@@ -43,6 +44,13 @@ db = SQLAlchemy(app)
 def ensure_email_settings():
     if not app.config.get('MAIL_USERNAME'):
         apply_email_settings()
+
+
+def _send_email_background(fn, *args, **kwargs):
+    try:
+        fn(*args, **kwargs)
+    except Exception as e:
+        app.logger.error(f"Background email send failed: {e}")
 
 
 def send_pickup_confirmation_email(pickup):
@@ -363,16 +371,16 @@ def request_pickup():
         create_status_update(pickup.id, 'pending', 'Pickup request submitted via website.')
         db.session.commit()
 
-        mail_sent = False
         try:
-            mail_sent = send_pickup_confirmation_email(pickup)
+            threading.Thread(
+                target=_send_email_background,
+                args=(send_pickup_confirmation_email, pickup),
+                daemon=True,
+            ).start()
         except Exception:
-            mail_sent = False
+            app.logger.exception('Pickup confirmation email dispatch failed')
 
-        if mail_sent:
-            flash(f'Pickup request submitted! Your tracking number is: {pickup.tracking_number}. A confirmation email has been sent.', 'success')
-        else:
-            flash(f'Pickup request submitted! Your tracking number is: {pickup.tracking_number}', 'success')
+        flash(f'Pickup request submitted! Your tracking number is: {pickup.tracking_number}', 'success')
         return redirect(url_for('track_request', tracking_number=pickup.tracking_number))
 
     return render_template('request_pickup.html', form=form)
@@ -651,7 +659,16 @@ def admin_request_detail(id):
             f"Status changed from {old_status} to {form.status.data}. {form.admin_notes.data or ''}".strip(),
             created_by='admin'
         )
-        send_status_update_email(pickup, old_status=old_status)
+
+        try:
+            threading.Thread(
+                target=_send_email_background,
+                args=(send_status_update_email, pickup, old_status),
+                daemon=True,
+            ).start()
+        except Exception:
+            app.logger.exception('Status update email dispatch failed')
+
         flash(f'Request {pickup.tracking_number} updated to "{form.status.data}"', 'success')
         return redirect(url_for('admin_request_detail', id=id))
 
